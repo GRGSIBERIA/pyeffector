@@ -1,14 +1,54 @@
+import time
 import tkinter
+from tkinter import messagebox
 from tkinter.constants import ANCHOR
 import tkinter.ttk as ttk
 import sounddevice as sd
+import numpy as np
+
+def StreamCallback(indata: np.ndarray, outdata: np.ndarray, frames: int, time, status: sd.CallbackFlags):
+    if status:
+        print(status)
+    outdata[:] = indata
 
 class MainWindow:
     def PressPlayButton(self, event):
         print("press play")
 
+        if self.rid["output device"].get() == "" or self.rid["input device"].get() == "":
+            messagebox.showerror(u"unable input/output device", u"Please, select input/output device.")
+            return
+
+        fs = int(self.rid["sampling rate"].get())
+        outdevice = self.rid["output device"].get()
+        indevice = self.rid["input device"].get()
+
+        outinfo = sd.query_devices(outdevice)
+        ininfo = sd.query_devices(indevice)
+        sd.default.device = (ininfo["name"], outinfo["name"])
+
+        inmax_ch = ininfo["max_input_channels"]
+        outmax_ch = outinfo["max_output_channels"]
+        inoutmax_ch = outmax_ch if inmax_ch > outmax_ch else inmax_ch
+        
+
+        self.stream = sd.Stream(samplerate=fs, channels=inoutmax_ch, dtype="float32", callback=StreamCallback)
+        self.stream.start()
+        print("start streaming")
+
     def PressStopButton(self, event):
-        pass
+        print("press stop")
+
+        if self.stream != None:
+            if self.stream.active:
+                self.stream.stop()
+                print("stop streaming")
+    
+    def PressAbortButton(self, event):
+        if self.stream != None:
+            if self.stream.active:
+                self.stream.abort()
+                print("abort streaming")
 
     def PressQueryButton(self, event):
         outname = self.rid["output device"].get()
@@ -33,7 +73,7 @@ class MainWindow:
         frame.grid()
 
         padx = 10
-        pady = 2
+        pady = 4
 
         self.device_info = {}
         list_devices = []
@@ -41,33 +81,24 @@ class MainWindow:
             list_devices.append(device["name"])
             self.device_info[device["name"]] = device
 
-        input_combo_string = tkinter.StringVar()
-        output_combo_string = tkinter.StringVar()
+        self.input_combo_string = tkinter.StringVar()
+        self.output_combo_string = tkinter.StringVar()
         kwargs = {"padx": padx, "pady": pady, "row": 1}
         
-        #play_button = tkinter.Button(frame, text=u"Play", width=20)
-        #play_button.grid(column=1, **kwargs)
-        #play_button.bind("<Button-1>", self.PressPlayButton)
-
-        #stop_button = tkinter.Button(frame, text=u"Stop", width=20)
-        #stop_button.grid(column=2, **kwargs)
-        #stop_button.bind("<Button-1>", self.PressStopButton)
-        #kwargs["row"] += 1
-
         tkinter.Label(frame, text=u"Input Device").grid(column=1, **kwargs)
         kwargs["row"] += 1
-
-        input_device_combo = ttk.Combobox(frame, textvariable=input_combo_string, values=list_devices, width=40)
-        input_device_combo.grid(column=1, columnspan=2, **kwargs)
-        self.rid["input device"] = input_device_combo
+        
+        self.rid["input device"] = ttk.Combobox(frame, textvariable=self.input_combo_string, values=list_devices, width=40)
+        self.rid["input device"].insert(tkinter.END, str(list_devices[sd.default.device[0]]))
+        self.rid["input device"].grid(column=1, columnspan=2, **kwargs)
         kwargs["row"] += 1
 
         tkinter.Label(frame, text=u"Output Device").grid(column=1, **kwargs)
         kwargs["row"] += 1
 
-        output_device_combo = ttk.Combobox(frame, textvariable=output_combo_string, values=list_devices, width=40)
-        output_device_combo.grid(column=1, columnspan=2, **kwargs)
-        self.rid["output device"] = output_device_combo
+        self.rid["output device"] = ttk.Combobox(frame, textvariable=self.output_combo_string, values=list_devices, width=40)
+        self.rid["output device"].insert(tkinter.END, str(list_devices[sd.default.device[1]]))
+        self.rid["output device"].grid(column=1, columnspan=2, **kwargs)
         kwargs["row"] += 1
 
         query_button = tkinter.Button(frame, text=u"Query", width=20)
@@ -108,6 +139,25 @@ class MainWindow:
             frame, u"High Output Latency", "input high output latency", "output high output latency", kwargs)
         self.DefineInputOutputLabel(
             frame, u"Sampling Rate", "input sampling rate", "output sampling rate", kwargs)
+        
+        tkinter.Label(frame, text=u"Using Sampling Rate").grid(column=1, **kwargs)
+        self.var["sampling rate"] = tkinter.StringVar()
+        self.rid["sampling rate"] = ttk.Combobox(frame, textvariable=self.var["sampling rate"], values=["22050", "44100", "48000", "96000", "192000"])
+        self.rid["sampling rate"].insert(tkinter.END, "96000")
+        self.rid["sampling rate"].grid(column=2, **kwargs)
+        kwargs["row"] += 1
+
+        play_btn = tkinter.Button(frame, text=u"Play", width=10)
+        play_btn.grid(column=1, **kwargs)
+        play_btn.bind("<Button-1>", self.PressPlayButton)
+
+        stop_btn = tkinter.Button(frame, text=u"Stop", width=10)
+        stop_btn.grid(column=2, **kwargs)
+        stop_btn.bind("<Button-1>", self.PressStopButton)
+
+        abort_btn = tkinter.Button(frame, text="Abort", width=10)
+        abort_btn.grid(column=3, **kwargs)
+        abort_btn.bind("<Button-1>", self.PressAbortButton)
 
 
     def __init__(self, title: str, geometry: str):
@@ -119,29 +169,6 @@ class MainWindow:
 
         self.ArrangeDeviceFrame()
         self.ArrangeDeviceInfoFrame()
-
-        """
-        sampling_rate_label = tkinter.Label(frame, text=u"Sampling Rate")
-        sampling_rate_label.grid(row=6, column=1, padx=padx, pady=pady)
-
-        sampling_rate_entry = tkinter.Entry(frame, width=20)
-        sampling_rate_entry.grid(row=6, column=2, padx=padx, pady=pady)
-        sampling_rate_entry.insert(tkinter.END, u"44100")
-        
-        use_input_channel_label = tkinter.Label(frame, text=u"Use Input Channel")
-        use_input_channel_label.grid(row=7, column=1, padx=padx, pady=pady)
-
-        use_input_entry = tkinter.Entry(frame, width=20)
-        use_input_entry.grid(row=7, column=2, padx=padx, pady=pady)
-        use_input_entry.insert(tkinter.END, u"2")
-
-        bitrate_label = tkinter.Label(frame, text=u"Bit Rate")
-        bitrate_label.grid(row=8, column=1, padx=padx, pady=pady)
-
-        bitrate_entry = tkinter.Entry(frame, width=20)
-        bitrate_entry.grid(row=8, column=2, padx=padx, pady=pady)
-        bitrate_entry.insert(tkinter.END, u"16")
-        """
 
         self.root.mainloop()
 
