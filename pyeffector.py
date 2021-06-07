@@ -6,13 +6,17 @@ import tkinter.ttk as ttk
 import sounddevice as sd
 import numpy as np
 
+current_input_channel = 2
+
 def StreamCallback(indata: np.ndarray, outdata: np.ndarray, frames: int, time, status: sd.CallbackFlags):
-    if status:
-        print(status)
+    global current_input_channel
+    print(current_input_channel)
     outdata[:] = indata
 
 class MainWindow:
     def PressPlayButton(self, event):
+        global current_input_channel
+
         print("press play")
 
         if self.rid["output device"].get() == "" or self.rid["input device"].get() == "":
@@ -31,7 +35,7 @@ class MainWindow:
         outmax_ch = outinfo["max_output_channels"]
         inoutmax_ch = outmax_ch if inmax_ch > outmax_ch else inmax_ch
         
-
+        current_input_channel = int(self.rid["current input channel"].get())
         self.stream = sd.Stream(samplerate=fs, channels=inoutmax_ch, dtype="float32", callback=StreamCallback)
         self.stream.start()
         print("start streaming")
@@ -145,6 +149,12 @@ class MainWindow:
         self.rid["sampling rate"] = ttk.Combobox(frame, textvariable=self.var["sampling rate"], values=["22050", "44100", "48000", "96000", "192000"])
         self.rid["sampling rate"].insert(tkinter.END, "96000")
         self.rid["sampling rate"].grid(column=2, **kwargs)
+        kwargs["row"] += 1
+
+        tkinter.Label(frame, text="Current Input Channel").grid(column=1, **kwargs)
+        self.rid["current input channel"] = ttk.Entry(frame)
+        self.rid["current input channel"].grid(column=2, **kwargs)
+        self.rid["current input channel"].insert(tkinter.END, "2")
         kwargs["row"] += 1
 
         play_btn = tkinter.Button(frame, text=u"Play", width=10)
