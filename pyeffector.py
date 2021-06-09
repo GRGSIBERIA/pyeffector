@@ -7,15 +7,27 @@ import sounddevice as sd
 import numpy as np
 
 current_input_channel = 2
+outputL_channel = 1
+outputR_channel = 2
+stream = None
+
+def WindowCloseCallback():
+    global stream
+    try:
+        stream.abort()
+        stream.close()
+    except:
+        pass
+    quit()
 
 def StreamCallback(indata: np.ndarray, outdata: np.ndarray, frames: int, time, status: sd.CallbackFlags):
     global current_input_channel
-    print(current_input_channel)
+    print(frames)
     outdata[:] = indata
 
 class MainWindow:
     def PressPlayButton(self, event):
-        global current_input_channel
+        global current_input_channel, outputR_channel, outputL_channel, stream
 
         print("press play")
 
@@ -31,28 +43,34 @@ class MainWindow:
         ininfo = sd.query_devices(indevice)
         sd.default.device = (ininfo["name"], outinfo["name"])
 
-        inmax_ch = ininfo["max_input_channels"]
-        outmax_ch = outinfo["max_output_channels"]
-        inoutmax_ch = outmax_ch if inmax_ch > outmax_ch else inmax_ch
-        
-        current_input_channel = int(self.rid["current input channel"].get())
-        self.stream = sd.Stream(samplerate=fs, channels=inoutmax_ch, dtype="float32", callback=StreamCallback)
+        # channel selector is a list of integers specifying the zero based channel numbers
+        current_input_channel = int(self.rid["current input channel"].get()) - 1
+        outputL_channel = int(self.rid["output L channel"].get()) - 1
+        outputR_channel = int(self.rid["output R channel"].get()) - 1
+
+        asio_in = sd.AsioSettings(channel_selectors=[current_input_channel])
+        asio_out = sd.AsioSettings(channel_selectors=[outputL_channel, outputR_channel])
+        sd.default.extra_settings = asio_in, asio_out
+
+        self.stream = sd.Stream(samplerate=fs, dtype="float32", callback=StreamCallback)
+        stream = self.stream
         self.stream.start()
         print("start streaming")
 
     def PressStopButton(self, event):
-        print("press stop")
-
-        if self.stream != None:
-            if self.stream.active:
-                self.stream.stop()
-                print("stop streaming")
+        try:
+            self.stream.stop()
+            print("stop streaming")
+        except:
+            pass
     
     def PressAbortButton(self, event):
-        if self.stream != None:
-            if self.stream.active:
-                self.stream.abort()
-                print("abort streaming")
+        try:
+            self.stream.close()
+            self.stream.abort()
+            print("abort streaming")
+        except:
+            pass
 
     def PressQueryButton(self, event):
         outname = self.rid["output device"].get()
@@ -157,6 +175,18 @@ class MainWindow:
         self.rid["current input channel"].insert(tkinter.END, "2")
         kwargs["row"] += 1
 
+        tkinter.Label(frame, text=u"Output L Channel").grid(column=1, **kwargs)
+        self.rid["output L channel"] = ttk.Entry(frame)
+        self.rid["output L channel"].grid(column=2, **kwargs)
+        self.rid["output L channel"].insert(tkinter.END, "1")
+        kwargs["row"] += 1
+
+        tkinter.Label(frame, text=u"Output R Channel").grid(column=1, **kwargs)
+        self.rid["output R channel"] = ttk.Entry(frame)
+        self.rid["output R channel"].grid(column=2, **kwargs)
+        self.rid["output R channel"].insert(tkinter.END, "2")
+        kwargs["row"] += 1
+
         play_btn = tkinter.Button(frame, text=u"Play", width=10)
         play_btn.grid(column=1, **kwargs)
         play_btn.bind("<Button-1>", self.PressPlayButton)
@@ -179,6 +209,8 @@ class MainWindow:
 
         self.ArrangeDeviceFrame()
         self.ArrangeDeviceInfoFrame()
+
+        self.root.protocol("WM_DELETE_WINDOW", WindowCloseCallback)
 
         self.root.mainloop()
 
