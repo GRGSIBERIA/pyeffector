@@ -22,7 +22,7 @@ def WindowCloseCallback():
 
 def StreamCallback(indata: np.ndarray, outdata: np.ndarray, frames: int, time, status: sd.CallbackFlags):
     global current_input_channel
-    print(frames)
+    print(len(outdata))
     outdata[:] = indata
 
 class MainWindow:
@@ -41,16 +41,20 @@ class MainWindow:
 
         outinfo = sd.query_devices(outdevice)
         ininfo = sd.query_devices(indevice)
+        print(outinfo)
         sd.default.device = (ininfo["name"], outinfo["name"])
+        
 
         # channel selector is a list of integers specifying the zero based channel numbers
         current_input_channel = int(self.rid["current input channel"].get()) - 1
         outputL_channel = int(self.rid["output L channel"].get()) - 1
         outputR_channel = int(self.rid["output R channel"].get()) - 1
 
-        asio_in = sd.AsioSettings(channel_selectors=[current_input_channel])
-        asio_out = sd.AsioSettings(channel_selectors=[outputL_channel, outputR_channel])
-        sd.default.extra_settings = asio_in, asio_out
+        #asio_in = sd.AsioSettings(channel_selectors=[current_input_channel])
+        #asio_out = sd.AsioSettings(channel_selectors=[outputL_channel, outputR_channel])
+        #sd.default.extra_settings = asio_in, asio_out
+        #wasapi = sd.WasapiSettings(exclusive=True)
+        #sd.default.extra_settings = wasapi
 
         self.stream = sd.Stream(samplerate=fs, dtype="float32", callback=StreamCallback)
         stream = self.stream
@@ -110,8 +114,15 @@ class MainWindow:
         tkinter.Label(frame, text=u"Input Device").grid(column=1, **kwargs)
         kwargs["row"] += 1
         
+        for api in sd.query_hostapis():
+            if "MME" in api["name"]:
+                print(api)
+                default_input_device = list_devices[api["default_input_device"]]
+                default_output_device = list_devices[api["default_output_device"]]
+                break
+
         self.rid["input device"] = ttk.Combobox(frame, textvariable=self.input_combo_string, values=list_devices, width=40)
-        self.rid["input device"].insert(tkinter.END, str(list_devices[sd.default.device[0]]))
+        self.rid["input device"].insert(tkinter.END, default_input_device)
         self.rid["input device"].grid(column=1, columnspan=2, **kwargs)
         kwargs["row"] += 1
 
@@ -119,7 +130,7 @@ class MainWindow:
         kwargs["row"] += 1
 
         self.rid["output device"] = ttk.Combobox(frame, textvariable=self.output_combo_string, values=list_devices, width=40)
-        self.rid["output device"].insert(tkinter.END, str(list_devices[sd.default.device[1]]))
+        self.rid["output device"].insert(tkinter.END, default_output_device)
         self.rid["output device"].grid(column=1, columnspan=2, **kwargs)
         kwargs["row"] += 1
 
@@ -209,6 +220,8 @@ class MainWindow:
 
         self.ArrangeDeviceFrame()
         self.ArrangeDeviceInfoFrame()
+        for device in sd.query_devices():
+            print(device["hostapi"])
 
         self.root.protocol("WM_DELETE_WINDOW", WindowCloseCallback)
 
