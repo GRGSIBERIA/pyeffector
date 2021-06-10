@@ -14,14 +14,15 @@ stream = None
 def WindowCloseCallback():
     global stream
     try:
-        stream.abort()
         stream.close()
+        stream.abort()
+        print("abort stream")
     except:
-        pass
+        print("excepted abort stream")
+    print("close window")
     quit()
 
 def StreamCallback(indata: np.ndarray, outdata: np.ndarray, frames: int, time, status: sd.CallbackFlags):
-    global current_input_channel
     print(len(outdata))
     outdata[:] = indata
 
@@ -43,20 +44,17 @@ class MainWindow:
         ininfo = sd.query_devices(indevice)
         print(outinfo)
         sd.default.device = (ininfo["name"], outinfo["name"])
-        
 
         # channel selector is a list of integers specifying the zero based channel numbers
         current_input_channel = int(self.rid["current input channel"].get()) - 1
         outputL_channel = int(self.rid["output L channel"].get()) - 1
         outputR_channel = int(self.rid["output R channel"].get()) - 1
 
-        #asio_in = sd.AsioSettings(channel_selectors=[current_input_channel])
-        #asio_out = sd.AsioSettings(channel_selectors=[outputL_channel, outputR_channel])
-        #sd.default.extra_settings = asio_in, asio_out
-        #wasapi = sd.WasapiSettings(exclusive=True)
-        #sd.default.extra_settings = wasapi
-
-        self.stream = sd.Stream(samplerate=fs, dtype="float32", callback=StreamCallback)
+        asio_in = sd.AsioSettings(channel_selectors=[current_input_channel, current_input_channel])
+        asio_out = sd.AsioSettings(channel_selectors=[outputL_channel, outputR_channel])
+        sd.default.extra_settings = asio_in, asio_out
+        
+        self.stream = sd.Stream(samplerate=fs, dtype="float32", channels=2, callback=StreamCallback)
         stream = self.stream
         self.stream.start()
         print("start streaming")
@@ -66,7 +64,7 @@ class MainWindow:
             self.stream.stop()
             print("stop streaming")
         except:
-            pass
+            print("excepted stop stream")
     
     def PressAbortButton(self, event):
         try:
@@ -74,7 +72,7 @@ class MainWindow:
             self.stream.abort()
             print("abort streaming")
         except:
-            pass
+            print("excepted abort stream")
 
     def PressQueryButton(self, event):
         outname = self.rid["output device"].get()
@@ -115,7 +113,7 @@ class MainWindow:
         kwargs["row"] += 1
         
         for api in sd.query_hostapis():
-            if "MME" in api["name"]:
+            if "ASIO" in api["name"]:
                 print(api)
                 default_input_device = list_devices[api["default_input_device"]]
                 default_output_device = list_devices[api["default_output_device"]]
@@ -176,7 +174,7 @@ class MainWindow:
         tkinter.Label(frame, text=u"Using Sampling Rate").grid(column=1, **kwargs)
         self.var["sampling rate"] = tkinter.StringVar()
         self.rid["sampling rate"] = ttk.Combobox(frame, textvariable=self.var["sampling rate"], values=["22050", "44100", "48000", "96000", "192000"])
-        self.rid["sampling rate"].insert(tkinter.END, "96000")
+        self.rid["sampling rate"].insert(tkinter.END, "192000")
         self.rid["sampling rate"].grid(column=2, **kwargs)
         kwargs["row"] += 1
 
@@ -220,8 +218,6 @@ class MainWindow:
 
         self.ArrangeDeviceFrame()
         self.ArrangeDeviceInfoFrame()
-        for device in sd.query_devices():
-            print(device["hostapi"])
 
         self.root.protocol("WM_DELETE_WINDOW", WindowCloseCallback)
 
