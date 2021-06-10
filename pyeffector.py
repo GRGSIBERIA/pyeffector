@@ -27,7 +27,7 @@ def WindowCloseCallback():
     quit()
 
 def StreamCallback(indata: np.ndarray, outdata: np.ndarray, frames: int, time, status: sd.CallbackFlags):
-    print(len(outdata))
+    #print(len(indata))
     outdata[:] = indata
 
 class MainWindow:
@@ -53,12 +53,13 @@ class MainWindow:
         current_input_channel = int(self.rid["current input channel"].get()) - 1
         outputL_channel = int(self.rid["output L channel"].get()) - 1
         outputR_channel = int(self.rid["output R channel"].get()) - 1
+        #sd.default.channels = (2,2)
 
-        asio_in = sd.AsioSettings(channel_selectors=[current_input_channel, current_input_channel])
+        asio_in = sd.AsioSettings(channel_selectors=[current_input_channel])
         asio_out = sd.AsioSettings(channel_selectors=[outputL_channel, outputR_channel])
         sd.default.extra_settings = asio_in, asio_out
         
-        self.stream = sd.Stream(samplerate=fs, dtype="float32", channels=2, callback=StreamCallback)
+        self.stream = sd.Stream(samplerate=fs, dtype="float32", channels=1, blocksize=128, callback=StreamCallback)
         stream = self.stream
         self.stream.start()
         print("start streaming")
