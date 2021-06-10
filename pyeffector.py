@@ -15,10 +15,14 @@ def WindowCloseCallback():
     global stream
     try:
         stream.close()
-        stream.abort()
-        print("abort stream")
+        print("close stream in close window")
     except:
-        print("excepted abort stream")
+        print("excepted close stream in close window")
+    try:
+        stream.abort()
+        print("abort stream in close window")
+    except:
+        print("excepted abort stream in close window")
     print("close window")
     quit()
 
