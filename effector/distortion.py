@@ -4,7 +4,7 @@ from numba import jit
 @jit("void(f8[:], f8[:], f8, f8)")
 def hard_clipping(indata: np.ndarray, outdata: np.ndarray, amplitude=5.0, level=0.8):
     length = np.abs(indata * amplitude)
-    outdata[:] = np.where(length > 1.0, indata * np.sign(indata), length * level)
+    outdata[:] = np.where(length > 1.0, np.sign(indata) * 1.0, length * level)
 
 @jit("void(f8[:], f8[:], f8, f8, f8)")
 def soft_clipping(indata: np.ndarray, outdata: np.ndarray, amplitude=5.0, level=0.8, quarity=0.3):
