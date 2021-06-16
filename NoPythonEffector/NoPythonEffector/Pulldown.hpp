@@ -6,6 +6,24 @@
  * https://gist.github.com/Reputeless/763d992f106f416c0473a8893edcc43d
  */
 
+/**
+ * void Main()
+ * {
+ * 	Graphics::SetBackground(Color(160, 200, 100));
+ * 
+ * 	FontAsset::Register(L"UIFont", 14);
+ * 
+ * 	Pulldown pulldown({ L"日本語", L"English", L"中文", L"Español", L"Français" }, L"UIFont", Point(40, 40));
+ * 
+ * 	while (System::Update())
+ * 	{
+ * 		pulldown.update();
+ * 
+ * 		pulldown.draw();
+ * 	}
+ * }
+ */
+
 class Pulldown
 {
 private:
