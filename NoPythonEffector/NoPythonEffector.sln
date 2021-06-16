@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoPythonEffector", "NoPythonEffector\NoPythonEffector.vcxproj", "{5F1D875D-B3BE-4179-9E03-0D622CB58C70}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F1D875D-B3BE-4179-9E03-0D622CB58C70}.Debug|x64.ActiveCfg = Debug|x64
+		{5F1D875D-B3BE-4179-9E03-0D622CB58C70}.Debug|x64.Build.0 = Debug|x64
+		{5F1D875D-B3BE-4179-9E03-0D622CB58C70}.Release|x64.ActiveCfg = Release|x64
+		{5F1D875D-B3BE-4179-9E03-0D622CB58C70}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A8099422-92D5-4D15-A00F-ADD26F5CC296}
+	EndGlobalSection
+EndGlobal
