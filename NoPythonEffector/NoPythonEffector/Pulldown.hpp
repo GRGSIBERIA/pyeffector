@@ -42,6 +42,8 @@ private:
 
 	bool m_opened = false;
 
+	bool m_available = true;
+
 public:
 
 	Pulldown() = default;
@@ -66,12 +68,18 @@ public:
 		return m_items.empty();
 	}
 
+	bool isAvailable() const
+	{
+		return m_available;
+	}
+
 	void update()
 	{
 		if (isEmpty())
 		{
 			return;
 		}
+
 
 		if (m_rect.leftClicked())
 		{
@@ -122,7 +130,7 @@ public:
 
 		pos.y += m_rect.h;
 
-		if (m_opened)
+		if (m_opened && isAvailable())
 		{
 			const size_t num_items = m_items.size();
 
@@ -173,5 +181,10 @@ public:
 		}
 
 		return m_items[m_index];
+	}
+
+	void toggleAvailable()
+	{
+		m_available = !m_available;
 	}
 };

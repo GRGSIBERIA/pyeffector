@@ -1,18 +1,23 @@
 ﻿
 #include <Siv3D.hpp> // OpenSiv3D v0.4.3
 #include "Pulldown.hpp"
+#include "TinyASIO/TinyASIO.hpp"
 
 void Main()
 {
-	// 背景を水色にする
 	Scene::SetBackground(ColorF(0.8, 0.9, 1.0));
 
-	// 大きさ 60 のフォントを用意
 	const Font font(60);
 	FontAsset::Register(U"UIFont", 14);
 
-	Array<String> items = { U"English" };
-	Pulldown device(items, U"UIFont", Point(40, 40));
+	const auto drivers = asio::Registry::GetAsioDriverPathes();
+	Array<String> converted_drivers;
+	for(size_t i = 0; i < drivers.Count(); ++i)
+	{
+		converted_drivers.emplace_back(Unicode::FromWString(drivers.Items(i).driverName));
+	}
+
+	Pulldown device(converted_drivers, U"UIFont", Point(40, 40));
 
 	while (System::Update())
 	{

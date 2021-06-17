@@ -507,3 +507,4 @@ FodyWeavers.xsd
 *.exe
 NoPythonEffector/NoPythonEffector/App/AS_DEBUG/stats.txt
 NoPythonEffector/NoPythonEffector/App/NoPythonEffector(debug)_log.html
+NoPythonEffector/NoPythonEffector/TinyASIO/
