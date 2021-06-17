@@ -508,3 +508,4 @@ FodyWeavers.xsd
 NoPythonEffector/NoPythonEffector/App/AS_DEBUG/stats.txt
 NoPythonEffector/NoPythonEffector/App/NoPythonEffector(debug)_log.html
 NoPythonEffector/NoPythonEffector/TinyASIO/
+NoPythonEffector/NoPythonEffector/App/config.ini

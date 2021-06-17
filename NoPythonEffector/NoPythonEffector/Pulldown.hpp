@@ -173,6 +173,11 @@ public:
 		return m_index;
 	}
 
+	void setIndex(const size_t index)
+	{
+		m_index = index;
+	}
+
 	String getItem() const
 	{
 		if (isEmpty())
@@ -186,5 +191,10 @@ public:
 	void toggleAvailable()
 	{
 		m_available = !m_available;
+	}
+
+	void forceSetAvailable(const bool available)
+	{
+		m_available = available;
 	}
 };

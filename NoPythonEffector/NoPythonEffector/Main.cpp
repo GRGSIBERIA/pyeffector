@@ -2,28 +2,84 @@
 #include <Siv3D.hpp> // OpenSiv3D v0.4.3
 #include "Pulldown.hpp"
 #include "TinyASIO/TinyASIO.hpp"
+#include "MainController.hpp"
 
 void Main()
 {
 	Scene::SetBackground(ColorF(0.8, 0.9, 1.0));
 
 	const Font font(60);
-	FontAsset::Register(U"UIFont", 14);
+	FontAsset::Register(U"UIFont", 18);
+	INIData data(U"./config.ini");
+	Array<String> converted_drivers;
+	MainController* controller = nullptr;
 
 	const auto drivers = asio::Registry::GetAsioDriverPathes();
-	Array<String> converted_drivers;
-	for(size_t i = 0; i < drivers.Count(); ++i)
+
+	/**
+	 * デバイス一覧を取得してプルダウンに反映させる
+	 */
+	for (size_t i = 0; i < drivers.Count(); ++i)
 	{
 		converted_drivers.emplace_back(Unicode::FromWString(drivers.Items(i).driverName));
 	}
-
 	Pulldown device(converted_drivers, U"UIFont", Point(40, 40));
 
+	/**
+	 * 設定ファイルを読み込んでプルダウンに反映させる
+	 */
+	if (data.isEmpty())
+	{
+		data.writeGlobal(U"Driver Name", *converted_drivers.begin());
+		data.save(U"./config.ini");
+	}
+	else
+	{
+		const auto driver_name = data.getGlobalValue(U"Driver Name");
+		for (size_t i = 0; i < drivers.Count(); ++i)
+		{
+			if (driver_name == Unicode::FromWString(drivers.Items(i).driverName))
+			{
+				device.setIndex(i);
+			}
+		}
+	}
+	
+	/**
+	 * 更新処理
+	 */
 	while (System::Update())
 	{
+		const Vec2 pad = { 0, 4 };
+
+		auto btnreg = device.getRect();
+		auto query_reg = SimpleGUI::ButtonRegion(U"Query", btnreg.bl() + pad);
+
+		if (query_reg.leftClicked())
+		{
+			if (controller != nullptr)
+			{
+				delete controller;
+			}
+			controller = new MainController(drivers.Items(device.getIndex()).driverName);
+			
+			controller->SampleRate();
+			controller->InputLatency();
+			controller->OutputLatency();
+			controller->OutputCount();
+			controller->InputCount();
+		}
+
 		device.update();
 		device.draw();
 	}
+
+	/**
+	 * 終了処理、最後に記憶した情報を設定ファイルに記録する
+	 */
+	delete controller;
+	data.writeGlobal(U"Driver Name", device.getItem());
+	data.save(U"./config.ini");
 }
 
 //

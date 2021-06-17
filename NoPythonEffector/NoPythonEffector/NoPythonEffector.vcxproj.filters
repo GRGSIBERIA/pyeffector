@@ -379,5 +379,8 @@
     <ClInclude Include="Pulldown.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MainController.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
