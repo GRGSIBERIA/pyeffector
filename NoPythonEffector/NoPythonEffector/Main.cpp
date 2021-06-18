@@ -8,13 +8,20 @@ void Main()
 {
 	Scene::SetBackground(ColorF(0.8, 0.9, 1.0));
 
-	const Font font(60);
+	const Font font(18);
 	FontAsset::Register(U"UIFont", 18);
 	INIData data(U"./config.ini");
 	Array<String> converted_drivers;
 	MainController* controller = nullptr;
 
 	const auto drivers = asio::Registry::GetAsioDriverPathes();
+
+	long input_latency = 0;
+	long output_latency = 0;
+	long input_count = 0;
+	long output_count = 0;
+	long sample_rate = 0;
+	long buffer_length = 0;
 
 	/**
 	 * デバイス一覧を取得してプルダウンに反映させる
@@ -53,9 +60,10 @@ void Main()
 		const Vec2 pad = { 0, 4 };
 
 		auto btnreg = device.getRect();
-		auto query_reg = SimpleGUI::ButtonRegion(U"Query", btnreg.bl() + pad);
+		auto register_reg = SimpleGUI::ButtonRegion(U"Regist", btnreg.bl() + pad);
+		SimpleGUI::Button(U"Regist", btnreg.bl() + pad);
 
-		if (query_reg.leftClicked())
+		if (register_reg.leftClicked())
 		{
 			if (controller != nullptr)
 			{
@@ -63,12 +71,21 @@ void Main()
 			}
 			controller = new MainController(drivers.Items(device.getIndex()).driverName);
 			
-			controller->SampleRate();
-			controller->InputLatency();
-			controller->OutputLatency();
-			controller->OutputCount();
-			controller->InputCount();
+			sample_rate = controller->SampleRate();
+			input_latency = controller->InputLatency();
+			output_latency = controller->OutputLatency();
+			output_count = controller->OutputCount();
+			input_count = controller->InputCount();
+			buffer_length = controller->BufferLength();
 		}
+
+		const auto black = Palette::Black;
+		const auto ilreg = font(U"Input Latency: {} us"_fmt(input_latency)).draw(register_reg.bl() + pad, black);
+		const auto olreg = font(U"Output Latency: {} us"_fmt(output_latency)).draw(ilreg.bl() + pad, black);
+		const auto icreg = font(U"Input Channels: {} ch"_fmt(input_count)).draw(olreg.bl() + pad, black);
+		const auto ocreg = font(U"Output Channels: {} ch"_fmt(output_count)).draw(icreg.bl() + pad, black);
+		const auto srreg = font(U"Sample Rate: {} Hz"_fmt(sample_rate)).draw(ocreg.bl() + pad, black);
+		const auto blreg = font(U"Buffer Length: {} Samples"_fmt(buffer_length)).draw(srreg.bl() + pad, black);
 
 		device.update();
 		device.draw();
