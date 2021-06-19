@@ -139,6 +139,17 @@ void Main()
 		outputL_ch.setPos(oLreg.tr().movedBy(chpad).asPoint());
 		outputR_ch.setPos(oRreg.tr().movedBy(chpad).asPoint());
 
+		const auto savereg = SimpleGUI::ButtonRegion(U"Save", oRreg.bl() + pad);
+		SimpleGUI::Button(U"Save", oRreg.bl() + pad);
+		if (savereg.leftClicked())
+		{
+			data.writeGlobal(U"Driver Name", device.getItem());
+			data.writeGlobal(U"Input Channel", input_ch.getIndex());
+			data.writeGlobal(U"Output L Channel", outputL_ch.getIndex());
+			data.writeGlobal(U"Output R Channel", outputR_ch.getIndex());
+			data.save(U"./config.ini");
+		}
+
 		input_ch.update();
 		outputL_ch.update();
 		outputR_ch.update();
