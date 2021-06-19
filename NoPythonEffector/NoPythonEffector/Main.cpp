@@ -4,6 +4,13 @@
 #include "TinyASIO/TinyASIO.hpp"
 #include "MainController.hpp"
 
+void SaveSuggests(INIData& data, const size_t input, const size_t outputL, const size_t outputR)
+{
+	data.writeGlobal(U"Input Channel", input);
+	data.writeGlobal(U"Output L Channel", outputL);
+	data.writeGlobal(U"Output R Channel", outputR);
+}
+
 void Main()
 {
 	Scene::SetBackground(ColorF(0.8, 0.9, 1.0));
@@ -44,9 +51,7 @@ void Main()
 	if (data.isEmpty())
 	{
 		data.writeGlobal(U"Driver Name", *converted_drivers.begin());
-		data.writeGlobal(U"Input Channel", suggest_input);
-		data.writeGlobal(U"Output L Channel", suggest_outputL);
-		data.writeGlobal(U"Output R Channel", suggest_outputR);
+		SaveSuggests(data, suggest_input, suggest_outputL, suggest_outputR);
 		data.save(U"./config.ini");
 	}
 	else
@@ -144,9 +149,10 @@ void Main()
 		if (savereg.leftClicked())
 		{
 			data.writeGlobal(U"Driver Name", device.getItem());
-			data.writeGlobal(U"Input Channel", input_ch.getIndex());
-			data.writeGlobal(U"Output L Channel", outputL_ch.getIndex());
-			data.writeGlobal(U"Output R Channel", outputR_ch.getIndex());
+			suggest_input = input_ch.getIndex();
+			suggest_outputL = outputL_ch.getIndex();
+			suggest_outputR = outputR_ch.getIndex();
+			SaveSuggests(data, suggest_input, suggest_outputL, suggest_outputR);
 			data.save(U"./config.ini");
 		}
 
@@ -167,6 +173,7 @@ void Main()
 	 */
 	delete controller;
 	data.writeGlobal(U"Driver Name", device.getItem());
+	SaveSuggests(data, suggest_input, suggest_outputL, suggest_outputR);
 	data.save(U"./config.ini");
 }
 
