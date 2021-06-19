@@ -27,4 +27,20 @@ public:
 	{
 		return channelManager->NumberOfOutputs();
 	}
+
+	std::vector<std::string> GetInputEntry()
+	{
+		std::vector<std::string> result;
+		for (size_t i = 0; i < channelManager->NumberOfInputs(); ++i)
+			result.push_back(channelManager->Inputs(i).name);
+		return result;
+	}
+
+	std::vector<std::string> GetOutputEntry()
+	{
+		std::vector<std::string> result;
+		for (size_t i = 0; i < channelManager->NumberOfOutputs(); ++i)
+			result.push_back(channelManager->Outputs(i).name);
+		return result;
+	}
 };
