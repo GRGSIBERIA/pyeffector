@@ -4,11 +4,18 @@
 class MainController : public asio::ControllerBase
 {
 	static asio::InputBuffer input;
-	static asio::OutputBuffer output;
+	static asio::OutputBuffer outputL;
+	static asio::OutputBuffer outputR;
 
-	void BufferSwitch(long index, long)
+	static void BufferSwitch(long index, long)
 	{
+		void* inputptr = input.GetBuffer(index);
+		void* outputLptr = outputL.GetBuffer(index);
+		void* outputRptr = outputR.GetBuffer(index);
 
+		const long size = bufferLength * sizeof(asio::SampleType);
+		memcpy_s(outputLptr, size, inputptr, size);
+		memcpy_s(outputRptr, size, inputptr, size);
 	}
 
 public:
@@ -42,5 +49,10 @@ public:
 		for (size_t i = 0; i < channelManager->NumberOfOutputs(); ++i)
 			result.push_back(channelManager->Outputs(i).name);
 		return result;
+	}
+
+	void Initialize(const size_t inputch, const size_t outputLch, const size_t outputRch)
+	{
+		CreateBuffer({ channelManager->Inputs(inputch), channelManager->Outputs(outputLch), channelManager->Outputs(outputRch) }, &BufferSwitch);
 	}
 };
