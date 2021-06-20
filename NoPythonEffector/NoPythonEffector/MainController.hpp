@@ -1,21 +1,27 @@
 ﻿#pragma once
+#include <mutex>
 #include "TinyASIO/TinyASIO.hpp"
 
 class MainController : public asio::ControllerBase
 {
-	static asio::InputBuffer input;
-	static asio::OutputBuffer outputL;
-	static asio::OutputBuffer outputR;
-
 	static void BufferSwitch(long index, long)
 	{
-		void* inputptr = input.GetBuffer(index);
-		void* outputLptr = outputL.GetBuffer(index);
-		void* outputRptr = outputR.GetBuffer(index);
+		auto* inputptr = (asio::SampleType*)bufferManager->Input(0).GetBuffer(index);
+		auto* outputLptr = (asio::SampleType*)bufferManager->Output(0).GetBuffer(index);
+		auto* outputRptr = (asio::SampleType*)bufferManager->Output(1).GetBuffer(index);
 
 		const long size = bufferLength * sizeof(asio::SampleType);
-		memcpy_s(outputLptr, size, inputptr, size);
-		memcpy_s(outputRptr, size, inputptr, size);
+		
+#pragma omp simd
+		for (size_t i = 0; i < bufferLength; ++i)
+		{
+			outputLptr[i] = inputptr[i];
+		}
+#pragma omp simd
+		for (size_t i = 0; i < bufferLength; ++i)
+		{
+			outputRptr[i] = inputptr[i];
+		}
 	}
 
 public:
@@ -54,5 +60,10 @@ public:
 	void Initialize(const size_t inputch, const size_t outputLch, const size_t outputRch)
 	{
 		CreateBuffer({ channelManager->Inputs(inputch), channelManager->Outputs(outputLch), channelManager->Outputs(outputRch) }, &BufferSwitch);
+	}
+
+	const bool isLocked() const
+	{
+		return mutex.
 	}
 };
