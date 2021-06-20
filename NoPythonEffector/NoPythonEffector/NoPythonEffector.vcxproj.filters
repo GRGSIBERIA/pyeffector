@@ -97,6 +97,9 @@
     <Filter Include="Resource Files\example\zip">
       <UniqueIdentifier>{81d8d80c-f0ce-492f-8fee-c5502c31bc0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\effector">
+      <UniqueIdentifier>{081bb3d1-7baf-4878-b1f9-0a04b695a0f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -381,6 +384,9 @@
     </ClInclude>
     <ClInclude Include="MainController.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Effector.hpp">
+      <Filter>Header Files\effector</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

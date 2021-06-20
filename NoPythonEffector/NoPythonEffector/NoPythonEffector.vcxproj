@@ -250,6 +250,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Effector.hpp" />
     <ClInclude Include="MainController.hpp" />
     <ClInclude Include="Pulldown.hpp" />
   </ItemGroup>
