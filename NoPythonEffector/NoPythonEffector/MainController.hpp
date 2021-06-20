@@ -12,14 +12,9 @@ class MainController : public asio::ControllerBase
 
 		const long size = bufferLength * sizeof(asio::SampleType);
 		
-#pragma omp simd
 		for (size_t i = 0; i < bufferLength; ++i)
 		{
 			outputLptr[i] = inputptr[i];
-		}
-#pragma omp simd
-		for (size_t i = 0; i < bufferLength; ++i)
-		{
 			outputRptr[i] = inputptr[i];
 		}
 	}
@@ -62,8 +57,4 @@ public:
 		CreateBuffer({ channelManager->Inputs(inputch), channelManager->Outputs(outputLch), channelManager->Outputs(outputRch) }, &BufferSwitch);
 	}
 
-	const bool isLocked() const
-	{
-		return mutex.
-	}
 };
