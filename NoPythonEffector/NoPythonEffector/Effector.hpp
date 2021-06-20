@@ -29,10 +29,6 @@ namespace effector
 		{
 			std::scoped_lock mutex{ mugain, mulevel };
 
-			/**
-			 * TODO: ちゃんと実装しよう
-			 */
-
 #pragma omp simd
 			for (size_t i = 0; i < length; ++i)
 			{	// ハードクリッピング
@@ -41,14 +37,18 @@ namespace effector
 
 #pragma omp simd
 			for (size_t i = 0; i < length; ++i)
-			{	// 符号を取る
-				output[i] = (input[i] > 0) - (input[i] < 0);
+			{
+				// 符号だけを取る
+				output[i] = (input[i] > 0.0) - (input[i] < 0.0);
+
+				// [-1, +1] の範囲を超えるなら符号を代入する
+				output[i] = (output[i] * input[i]) > 1.0 ? output[i] : input[i];
 			}
 
 #pragma omp simd
 			for (size_t i = 0; i < length; ++i)
 			{
-				output[i] = output[i] * input[i] * _level;
+				output[i] += _level;
 			}
 		}
 
