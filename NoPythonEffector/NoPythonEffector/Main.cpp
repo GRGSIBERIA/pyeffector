@@ -88,6 +88,9 @@ void Main()
 	bool is_start = false;
 	bool is_playing = true;
 	bool past_playing = true;	// 前フレームの状態
+
+	Graphics::SetTargetFrameRateHz(30);	// 30FPSで動作させる
+
 	while (System::Update())
 	{
 		if (!is_start)
