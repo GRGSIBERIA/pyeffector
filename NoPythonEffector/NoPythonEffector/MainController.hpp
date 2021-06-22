@@ -4,19 +4,19 @@
 
 class MainController : public asio::ControllerBase
 {
+	static void* inputptr[2];
+	static void* outputLptr[2];
+	static void* outputRptr[2];
+
 	static void BufferSwitch(long index, long)
 	{
-		auto* inputptr = (asio::SampleType*)bufferManager->Input(0).GetBuffer(index);
-		auto* outputLptr = (asio::SampleType*)bufferManager->Output(0).GetBuffer(index);
-		auto* outputRptr = (asio::SampleType*)bufferManager->Output(1).GetBuffer(index);
+		asio::SampleType* inptr = (asio::SampleType*)inputptr[index];
+		asio::SampleType* outLptr = (asio::SampleType*)outputLptr[index];
+		asio::SampleType* outRptr = (asio::SampleType*)outputRptr[index];
 
 		const long size = bufferLength * sizeof(asio::SampleType);
-		
-		for (size_t i = 0; i < bufferLength; ++i)
-		{
-			outputLptr[i] = inputptr[i];
-			outputRptr[i] = inputptr[i];
-		}
+		//memcpy_s(outLptr, size, inptr, size);
+		//memcpy_s(outRptr, size, inptr, size);
 	}
 
 public:
@@ -55,6 +55,16 @@ public:
 	void Initialize(const size_t inputch, const size_t outputLch, const size_t outputRch)
 	{
 		CreateBuffer({ channelManager->Inputs(inputch), channelManager->Outputs(outputLch), channelManager->Outputs(outputRch) }, &BufferSwitch);
-	}
 
+		for (int i = 0; i < 2; ++i)
+		{
+			inputptr[i] = bufferManager->Input(0).GetBuffer(i);
+			outputLptr[i] = bufferManager->Output(0).GetBuffer(i);
+			outputRptr[i] = bufferManager->Output(1).GetBuffer(i);
+		}
+	}
 };
+
+void* MainController::inputptr[] = { nullptr, nullptr };
+void* MainController::outputLptr[] = { nullptr, nullptr };
+void* MainController::outputRptr[] = { nullptr, nullptr };
