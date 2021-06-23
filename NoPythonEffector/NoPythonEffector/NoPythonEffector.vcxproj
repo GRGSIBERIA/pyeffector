@@ -251,7 +251,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Compressor.hpp" />
+    <ClInclude Include="DistortionHard.hpp" />
     <ClInclude Include="Effector.hpp" />
+    <ClInclude Include="DistortionSoft.hpp" />
     <ClInclude Include="MainController.hpp" />
     <ClInclude Include="Pulldown.hpp" />
   </ItemGroup>

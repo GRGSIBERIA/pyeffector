@@ -1,11 +1,16 @@
 ﻿#pragma once
 #include <mutex>
 #include "TinyASIO/TinyASIO.hpp"
+
 #include "Compressor.hpp"
+#include "DistortionHard.hpp"
+#include "DistortionSoft.hpp"
 
 class MainController : public asio::ControllerBase
 {
 	static effector::Compressor comp;
+	static effector::DistortionHard hard;
+	static effector::DistortionSoft soft;
 
 	static void BufferSwitch(long index, long)
 	{
@@ -59,12 +64,19 @@ public:
 	void load(INIData& data, const String& path)
 	{
 		comp.load(data, path);
+		hard.load(data, path);
+		soft.load(data, path);
 	}
 
 	void draw(const Vec2& pos, const Font& font)
 	{
+		const Vec2 pad{ 0, 8 };
 		const auto compreg = comp.draw(pos, font);
+		const auto softreg = soft.draw(compreg.bl() + pad, font);
+		const auto hardreg = hard.draw(softreg.bl() + pad, font);
 	}
 };
 
 effector::Compressor MainController::comp;
+effector::DistortionHard MainController::hard;
+effector::DistortionSoft MainController::soft;

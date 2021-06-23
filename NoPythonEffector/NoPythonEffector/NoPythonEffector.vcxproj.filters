@@ -391,5 +391,11 @@
     <ClInclude Include="Compressor.hpp">
       <Filter>Header Files\effector</Filter>
     </ClInclude>
+    <ClInclude Include="DistortionSoft.hpp">
+      <Filter>Header Files\effector</Filter>
+    </ClInclude>
+    <ClInclude Include="DistortionHard.hpp">
+      <Filter>Header Files\effector</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
