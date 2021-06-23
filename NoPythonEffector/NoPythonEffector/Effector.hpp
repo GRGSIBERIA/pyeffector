@@ -46,79 +46,32 @@ namespace effector
 
 	class Effector
 	{
+	protected:
+		const double slider_width = 200.0;
+		const double label_width = 200.0;
+		const Vec2 pad = Vec2{ 0.0, 4.0 };
+
+		const RectF drawSlider(const String& label, double& uidata, const Vec2& pos, const double minimum, const double maximum)
+		{
+			SimpleGUI::Slider(label, uidata, minimum, maximum, pos, label_width, slider_width);
+			return SimpleGUI::SliderRegion(pos, label_width, slider_width);
+		}
+
+		const RectF region(const RectF& title, const RectF& tail) const
+		{
+			return RectF{
+				title.tl(), tail.br() - title.tl()
+			};
+		}
+
 	public:
 		virtual void apply(asio::SampleType* input, asio::SampleType* output, const long length) = 0;
 
 		virtual ~Effector() {}
-	};
 
-	class DistortionSoft : public Effector
-	{
-		float _gain = 0.0;
-		float _quarity = 0.0;
-		float _level = 0.0;
-
-		std::mutex mugain;
-		std::mutex muquarity;
-		std::mutex mulevel;
-	public:
-		virtual ~DistortionSoft() {}
-
-		void apply(asio::SampleType* input, asio::SampleType* output, const long length) override
-		{
-			std::scoped_lock mutex{ mugain, muquarity, mulevel };
-
-			const float pi2 = 1.0 / std::numbers::pi * 0.5;
-
-#pragma omp simd
-			for (long i = 0; i < length; ++i)
-			{
-				input[i] = atanf(output[i]) * pi2;
-			}
-
-#pragma omp simd
-			for (long i = 0; i < length; ++i)
-			{
-				input[i] = input[i] > 0.0 ? input[i] * _gain : input[i] * _gain * _quarity;
-			}
-
-#pragma omp simd
-			for (long i = 0; i < length; ++i)
-			{
-				output[i] = (input[i] > 0.0) - (input[i] < 0.0);
-				output[i] = output[i] * input[i] > 1.0 ? output[i] : input[i];
-			}
-
-#pragma omp simd
-			for (long i = 0; i < length; ++i)
-			{
-				output[i] *= _level;
-			}
-		}
-
-		void setGain(const float gain) 
-		{
-			std::scoped_lock mutex{ mugain };
-			_gain = gain; 
-		}
-
-		void setQuarity(const float quarity) 
-		{ 
-			std::scoped_lock mutex{ muquarity };
-			_quarity = quarity; 
-		}
-
-		void setLevel(const float level) 
-		{ 
-			std::scoped_lock mutex{ mulevel };
-			_level = level; 
-		}
-
-		const float getGain() const { return _gain; }
-
-		const float getQuarity() const { return _quarity; }
-
-		const float getLevel() const { return _level; }
+		virtual const RectF draw(const Vec2& pos, const Font& font) = 0;
+		virtual void load(INIData& data, const String& path) = 0;
+		virtual void save(INIData& data, const String& path) = 0;
 	};
 
 	class DistortionHard : public Effector

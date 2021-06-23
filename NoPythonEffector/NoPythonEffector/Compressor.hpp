@@ -39,19 +39,13 @@ namespace effector
 			}
 		}
 
-		RectF draw(const Vec2& pos, const Font& font)
+		const RectF draw(const Vec2& pos, const Font& font) override
 		{
-			const double slider_width = 200.0;
-			const double label_width = 200.0;
-
 			font(U"Compressor").draw(pos, Palette::Black);
 			const auto title_reg = font(U"Compressor").region(pos);
 
-			SimpleGUI::Slider(U"THREASHOLD", _ui_threashold, 0.0, 1.0, title_reg.bl() + Vec2{ 0,4 }, label_width, slider_width);
-			const auto threshold_reg = SimpleGUI::SliderRegion(title_reg.bl() + Vec2{ 0,4 }, label_width, slider_width);
-
-			SimpleGUI::Slider(U"RATIO", _ui_ratio, 0.0, 1.0, threshold_reg.bl(), label_width, slider_width);
-			const auto ratio_reg = SimpleGUI::SliderRegion(threshold_reg.bl(), label_width, slider_width);
+			const auto threshold_reg = drawSlider(U"THREASHOLD", _ui_threashold, title_reg.bl() + pad, 0.0, 1.0);
+			const auto ratio_reg = drawSlider(U"RATIO", _ui_ratio, threshold_reg.bl() + pad, 1.0, 8.0);
 
 			{
 				std::scoped_lock mutex{ muthreshold, muratio };
@@ -59,12 +53,10 @@ namespace effector
 				_ratio = (float)_ui_ratio;
 			}
 
-			return RectF{
-				title_reg.tl(), ratio_reg.br() - title_reg.tl()
-			};
+			return region(title_reg, ratio_reg);
 		}
 
-		void load(INIData& data, const String& path)
+		void load(INIData& data, const String& path) override
 		{
 			if (!data.hasSection(U"Compressor"))
 			{
@@ -73,24 +65,23 @@ namespace effector
 				data[U"Compressor.ratio"] = Format(0.0);
 				data.save(path);
 			}
-			else
+			
+			const auto& sec = data.getSection(U"Compressor");
+			for (const auto& key : sec.keys)
 			{
-				const auto& sec = data.getSection(U"Compressor");
-				for (const auto& key : sec.keys)
+				if (key.name == U"ratio")
 				{
-					if (key.name == U"ratio")
-					{
-						_ui_ratio = Parse<double>(key.value);
-					}
-					else if (key.name == U"threashold")
-					{
-						_ui_threashold = Parse<double>(key.value);
-					}
+					_ui_ratio = Parse<double>(key.value);
+				}
+				else if (key.name == U"threashold")
+				{
+					_ui_threashold = Parse<double>(key.value);
 				}
 			}
+			
 		}
 
-		void save(INIData& data, const String& path)
+		void save(INIData& data, const String& path) override
 		{
 			data[U"Compressor.threashold"] = Format(_ui_threashold);
 			data[U"Compressor.ratio"] = Format(_ui_ratio);
