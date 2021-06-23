@@ -39,31 +39,29 @@ namespace effector
 			}
 		}
 
-		const float getThreashold() const { return _threashold; }
-
-		const float getRatio() const { return _ratio; }
-
-		void setThreashold(const float threashold)
-		{
-			std::scoped_lock mutex{ muthreshold };
-			_threashold = threashold;
-		}
-
-		void setRatio(const float ratio)
-		{
-			std::scoped_lock mutex{ muratio };
-			_ratio = ratio;
-		}
-
-		void draw(const Vec2& pos)
+		RectF draw(const Vec2& pos, const Font& font)
 		{
 			const double slider_width = 200.0;
 			const double label_width = 200.0;
 
-			SimpleGUI::Slider(U"THREASHOLD", _ui_threashold, 0.0, 1.0, pos, label_width, slider_width);
-			const auto threshold_reg = SimpleGUI::SliderRegion(pos, label_width, slider_width);
+			font(U"Compressor").draw(pos, Palette::Black);
+			const auto title_reg = font(U"Compressor").region(pos);
+
+			SimpleGUI::Slider(U"THREASHOLD", _ui_threashold, 0.0, 1.0, title_reg.bl() + Vec2{ 0,4 }, label_width, slider_width);
+			const auto threshold_reg = SimpleGUI::SliderRegion(title_reg.bl() + Vec2{ 0,4 }, label_width, slider_width);
 
 			SimpleGUI::Slider(U"RATIO", _ui_ratio, 0.0, 1.0, threshold_reg.bl(), label_width, slider_width);
+			const auto ratio_reg = SimpleGUI::SliderRegion(threshold_reg.bl(), label_width, slider_width);
+
+			{
+				std::scoped_lock mutex{ muthreshold, muratio };
+				_threashold = (float)_ui_threashold;
+				_ratio = (float)_ui_ratio;
+			}
+
+			return RectF{
+				title_reg.tl(), ratio_reg.br() - title_reg.tl()
+			};
 		}
 
 		void load(INIData& data, const String& path)

@@ -39,10 +39,6 @@ void Main()
 	size_t suggest_outputL = 0;
 	size_t suggest_outputR = 0;
 
-	effector::Compressor comp;
-	comp.load(data, inipath);
-	
-
 	/**
 	 * デバイス一覧を取得してプルダウンに反映させる
 	 */
@@ -88,6 +84,8 @@ void Main()
 
 		data.save(inipath);
 	}
+
+	controller->load(data, inipath);
 	
 	/**
 	 * 更新処理
@@ -205,7 +203,7 @@ void Main()
 				controller->Stop();
 			}
 
-			comp.draw(togglereg.bl() + pad);
+			controller->draw(togglereg.bl() + pad, font);
 
 			past_playing = is_playing;
 		}

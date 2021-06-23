@@ -1,23 +1,21 @@
 ﻿#pragma once
 #include <mutex>
 #include "TinyASIO/TinyASIO.hpp"
+#include "Compressor.hpp"
 
 class MainController : public asio::ControllerBase
 {
+	static effector::Compressor comp;
+
 	static void BufferSwitch(long index, long)
 	{
 		asio::SampleType* inptr = (asio::SampleType*)bufferManager->Input(0).GetBuffer(index);
 		asio::SampleType* outLptr = (asio::SampleType*)bufferManager->Output(0).GetBuffer(index);
-		//asio::SampleType* outRptr = (asio::SampleType*)outputRptr[index];
 
-		//const long size = bufferLength * sizeof(asio::SampleType);
-		//memcpy_s(outLptr, size, inptr, size);
-		//memcpy_s(outRptr, size, inptr, size);
-
+		comp.apply(inptr, outLptr, bufferLength);
+		
 		for (size_t i = 0; i < bufferLength; ++i)
-		{
 			outLptr[i] = inptr[i];
-		}
 	}
 
 public:
@@ -56,5 +54,18 @@ public:
 	void Initialize(const size_t inputch, const size_t outputLch, const size_t outputRch)
 	{
 		CreateBuffer({ channelManager->Inputs(inputch), channelManager->Outputs(outputLch), channelManager->Outputs(outputRch) }, &BufferSwitch);
+
+	}
+
+	void load(INIData& data, const String& path)
+	{
+		comp.load(data, path);
+	}
+
+	void draw(const Vec2& pos, const Font& font)
+	{
+		comp.draw(pos, font);
 	}
 };
+
+effector::Compressor MainController::comp;
