@@ -30,6 +30,11 @@ public:
 
 	}
 
+	virtual ~MainController() 
+	{
+		
+	}
+
 	const long InputCount() const
 	{
 		return channelManager->NumberOfInputs();
@@ -74,6 +79,13 @@ public:
 		const auto compreg = comp.draw(pos, font);
 		const auto softreg = soft.draw(compreg.bl() + pad, font);
 		const auto hardreg = hard.draw(softreg.bl() + pad, font);
+	}
+
+	void save(INIData& data, const String& path)
+	{
+		comp.save(data, path);
+		hard.save(data, path);
+		soft.save(data, path);
 	}
 };
 

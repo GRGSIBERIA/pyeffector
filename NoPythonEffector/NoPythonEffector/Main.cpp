@@ -212,7 +212,9 @@ void Main()
 	/**
 	 * 終了処理、最後に記憶した情報を設定ファイルに記録する
 	 */
+	controller->save(data, inipath);
 	delete controller;
+
 	data.writeGlobal(U"Driver Name", device.getItem());
 	SaveSuggests(data, suggest_input, suggest_outputL, suggest_outputR);
 	data.save(inipath);
