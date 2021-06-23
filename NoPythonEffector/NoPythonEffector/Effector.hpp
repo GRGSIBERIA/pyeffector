@@ -52,55 +52,6 @@ namespace effector
 		virtual ~Effector() {}
 	};
 
-	class Compressor : public Effector
-	{
-		float _threashold = 0.0;
-		float _ratio = 0.0;
-
-		std::mutex muthreshold;
-		std::mutex muratio;
-
-	public:
-		virtual ~Compressor() {}
-
-		void apply(asio::SampleType* input, asio::SampleType* output, const long length) override
-		{
-			std::scoped_lock mutex{ muthreshold, muratio };
-
-			const float reverse_ratio = 1.0 / _ratio;
-
-#pragma omp simd
-			for (long i = 0; i < length; ++i)
-			{
-				output[i] = (input[i] > 0.0) - (input[i] < 0.0);
-			}
-
-#pragma omp simd
-			for (long i = 0; i < length; ++i)
-			{
-				output[i] = 
-					output[i] * input[i] < _threashold ? 
-						input[i] : input[i] * (_threashold + (((output[i] * input[i]) - _threashold) * reverse_ratio));
-			}
-		}
-
-		const float getThreashold() const { return _threashold; }
-
-		const float getRatio() const { return _ratio; }
-
-		void setThreashold(const float threashold)
-		{
-			std::scoped_lock mutex{ muthreshold };
-			_threashold = threashold;
-		}
-
-		void setRatio(const float ratio)
-		{
-			std::scoped_lock mutex{ muratio };
-			_ratio = ratio;
-		}
-	};
-
 	class DistortionSoft : public Effector
 	{
 		float _gain = 0.0;

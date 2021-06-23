@@ -4,6 +4,8 @@
 #include "TinyASIO/TinyASIO.hpp"
 #include "MainController.hpp"
 
+#include "Compressor.hpp"
+
 void SaveSuggests(INIData& data, const size_t input, const size_t outputL, const size_t outputR)
 {
 	data.writeGlobal(U"Input Channel", input);
@@ -17,7 +19,8 @@ void Main()
 
 	const Font font(18);
 	FontAsset::Register(U"UIFont", 18);
-	INIData data(U"./config.ini");
+	const String inipath = U"./config.ini";
+	INIData data(inipath);
 	Array<String> converted_drivers;
 	MainController* controller = nullptr;
 	Pulldown input_ch;
@@ -36,6 +39,10 @@ void Main()
 	size_t suggest_outputL = 0;
 	size_t suggest_outputR = 0;
 
+	effector::Compressor comp;
+	comp.load(data, inipath);
+	
+
 	/**
 	 * デバイス一覧を取得してプルダウンに反映させる
 	 */
@@ -52,7 +59,7 @@ void Main()
 	{
 		data.writeGlobal(U"Driver Name", *converted_drivers.begin());
 		SaveSuggests(data, suggest_input, suggest_outputL, suggest_outputR);
-		data.save(U"./config.ini");
+		data.save(inipath);
 	}
 	else
 	{
@@ -79,7 +86,7 @@ void Main()
 		else
 			data.writeGlobal(U"Output R Channel", suggest_outputR);
 
-		data.save(U"./config.ini");
+		data.save(inipath);
 	}
 	
 	/**
@@ -159,7 +166,7 @@ void Main()
 				suggest_outputL = outputL_ch.getIndex();
 				suggest_outputR = outputR_ch.getIndex();
 				SaveSuggests(data, suggest_input, suggest_outputL, suggest_outputR);
-				data.save(U"./config.ini");
+				data.save(inipath);
 			}
 
 			const auto startreg = SimpleGUI::ButtonRegion(U"Start", savereg.tr() + chpad);
@@ -184,6 +191,8 @@ void Main()
 		}
 		else
 		{	// Startボタンが押されてからの画面
+			const Vec2 pad{ 0.0, 4.0 };
+
 			const auto togglereg = SimpleGUI::CheckBoxRegion(U"Playing", { 4, 4 });
 			SimpleGUI::CheckBox(is_playing, U"Playing", { 4, 4 });
 
@@ -196,6 +205,8 @@ void Main()
 				controller->Stop();
 			}
 
+			comp.draw(togglereg.bl() + pad);
+
 			past_playing = is_playing;
 		}
 	}
@@ -206,7 +217,7 @@ void Main()
 	delete controller;
 	data.writeGlobal(U"Driver Name", device.getItem());
 	SaveSuggests(data, suggest_input, suggest_outputL, suggest_outputR);
-	data.save(U"./config.ini");
+	data.save(inipath);
 }
 
 //

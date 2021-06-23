@@ -388,5 +388,8 @@
     <ClInclude Include="Effector.hpp">
       <Filter>Header Files\effector</Filter>
     </ClInclude>
+    <ClInclude Include="Compressor.hpp">
+      <Filter>Header Files\effector</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
