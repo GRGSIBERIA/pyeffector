@@ -54,7 +54,6 @@ public:
 	void Initialize(const size_t inputch, const size_t outputLch, const size_t outputRch)
 	{
 		CreateBuffer({ channelManager->Inputs(inputch), channelManager->Outputs(outputLch), channelManager->Outputs(outputRch) }, &BufferSwitch);
-
 	}
 
 	void load(INIData& data, const String& path)
@@ -64,7 +63,7 @@ public:
 
 	void draw(const Vec2& pos, const Font& font)
 	{
-		comp.draw(pos, font);
+		const auto compreg = comp.draw(pos, font);
 	}
 };
 
