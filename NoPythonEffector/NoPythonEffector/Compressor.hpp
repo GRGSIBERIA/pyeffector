@@ -61,8 +61,8 @@ namespace effector
 			if (!data.hasSection(U"Compressor"))
 			{
 				data.addSection(U"Compressor");
-				data[U"Compressor.threashold"] = Format(0.0);
-				data[U"Compressor.ratio"] = Format(0.0);
+				data[U"Compressor.threashold"] = Format(0.1);
+				data[U"Compressor.ratio"] = Format(2.0);
 				data.save(path);
 			}
 			
@@ -78,7 +78,6 @@ namespace effector
 					_ui_threashold = Parse<double>(key.value);
 				}
 			}
-			
 		}
 
 		void save(INIData& data, const String& path) override
