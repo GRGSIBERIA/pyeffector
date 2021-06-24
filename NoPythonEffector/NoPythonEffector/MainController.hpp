@@ -15,21 +15,26 @@ class MainController : public asio::ControllerBase
 
 	static std::mutex muapplyer;
 
+	static asio::SampleType* worker;
+
 	static void BufferSwitch(long index, long)
 	{
 		asio::SampleType* inptr = (asio::SampleType*)bufferManager->Input(0).GetBuffer(index);
 		asio::SampleType* outLptr = (asio::SampleType*)bufferManager->Output(0).GetBuffer(index);
 
-		comp.apply(inptr, outLptr, bufferLength);
-
+		const size_t bufsize = bufferLength * sizeof(asio::SampleType);
+		if (comp.enabled())
 		{
+			comp.apply(inptr, worker, bufferLength);
+
 			std::scoped_lock mutex{ muapplyer };
-			applyer->apply(inptr, outLptr, bufferLength);
+			if (applyer != nullptr)
+				applyer->apply(worker, outLptr, bufferLength);
 		}
-		
-		
-		for (size_t i = 0; i < bufferLength; ++i)
-			outLptr[i] = inptr[i];
+		else
+		{
+			memcpy_s(outLptr, bufsize, inptr, bufsize);
+		}
 	}
 
 public:
@@ -41,7 +46,8 @@ public:
 
 	virtual ~MainController() 
 	{
-		
+		if (worker != nullptr)
+			free(worker);
 	}
 
 	const long InputCount() const
@@ -73,6 +79,7 @@ public:
 	void Initialize(const size_t inputch, const size_t outputLch, const size_t outputRch)
 	{
 		CreateBuffer({ channelManager->Inputs(inputch), channelManager->Outputs(outputLch), channelManager->Outputs(outputRch) }, &BufferSwitch);
+		worker = (asio::SampleType*)malloc(bufferLength * sizeof(asio::SampleType));
 	}
 
 	void load(INIData& data, const String& path)
@@ -103,6 +110,9 @@ public:
 		std::scoped_lock mutex{ muapplyer };
 		switch (index)
 		{
+		case 0:
+			applyer = nullptr;
+			break;
 		case 1:
 			applyer = &hard;
 			break;
@@ -125,3 +135,4 @@ effector::DistortionHard MainController::hard;
 effector::DistortionSoft MainController::soft;
 effector::Effector* MainController::applyer = nullptr;
 std::mutex MainController::muapplyer;
+asio::SampleType* MainController::worker = nullptr;

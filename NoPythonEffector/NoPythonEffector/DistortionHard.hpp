@@ -20,28 +20,25 @@ namespace effector
 
 		void apply(asio::SampleType* input, asio::SampleType* output, const long length) override
 		{
+			//const float real_gain = pow(10.0, _gain);
+
 			std::scoped_lock mutex{ mugain, mulevel };
 
 #pragma omp simd
 			for (long i = 0; i < length; ++i)
-			{	// ハードクリッピング
-				input[i] *= _gain;
-			}
-
-#pragma omp simd
-			for (long i = 0; i < length; ++i)
 			{
-				// 符号だけを取る
-				output[i] = (input[i] > 0.0) - (input[i] < 0.0);
+				
+				output[i] = input[i] * _gain;
 
-				// [-1, +1] の範囲を超えるなら符号を代入する
-				output[i] = (output[i] * input[i]) > 1.0 ? output[i] : input[i];
-			}
+				const float _abs = abs(input[i]);
+				
+				if (_abs > 1.0)
+				{
+					const float _sign = (input[i] > 0.0) - (input[i] < 0.0);
+					output[i] = _sign;
+				}
 
-#pragma omp simd
-			for (long i = 0; i < length; ++i)
-			{
-				output[i] *= _level;
+				output[i] * _level;
 			}
 		}
 
@@ -50,7 +47,7 @@ namespace effector
 			font(U"Distortion").draw(pos, Palette::Black);
 			const auto title_reg = font(U"Compressor").region(pos);
 
-			const auto gain_reg = drawSlider(U"GAIN", _ui_gain, title_reg.bl() + pad, 0.0, 1.0);
+			const auto gain_reg = drawSlider(U"GAIN", _ui_gain, title_reg.bl() + pad, 0.0, 8.0);
 			const auto level_reg = drawSlider(U"LEVEL", _ui_level, gain_reg.bl() + pad, 0.0, 1.0);
 
 			{
