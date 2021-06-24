@@ -28,17 +28,18 @@ namespace effector
 			for (long i = 0; i < length; ++i)
 			{
 				
-				output[i] = input[i] * _gain;
+				const float gained = input[i] * _gain;
+				output[i] = gained;
 
-				const float _abs = abs(input[i]);
+				const float _abs = abs(gained);
 				
 				if (_abs > 1.0)
 				{
-					const float _sign = (input[i] > 0.0) - (input[i] < 0.0);
+					const float _sign = (gained > 0.0) - (gained < 0.0);
 					output[i] = _sign;
 				}
 
-				output[i] * _level;
+				output[i] *= _level;
 			}
 		}
 
@@ -47,7 +48,7 @@ namespace effector
 			font(U"Distortion").draw(pos, Palette::Black);
 			const auto title_reg = font(U"Compressor").region(pos);
 
-			const auto gain_reg = drawSlider(U"GAIN", _ui_gain, title_reg.bl() + pad, 0.0, 8.0);
+			const auto gain_reg = drawSlider(U"GAIN", _ui_gain, title_reg.bl() + pad, 0.0, 4.0);
 			const auto level_reg = drawSlider(U"LEVEL", _ui_level, gain_reg.bl() + pad, 0.0, 1.0);
 
 			{

@@ -29,11 +29,24 @@ class MainController : public asio::ControllerBase
 
 			std::scoped_lock mutex{ muapplyer };
 			if (applyer != nullptr)
+			{
 				applyer->apply(worker, outLptr, bufferLength);
+			}
+			else
+			{
+				memcpy_s(outLptr, bufsize, worker, bufsize);
+			}
 		}
 		else
 		{
-			memcpy_s(outLptr, bufsize, inptr, bufsize);
+			if (applyer != nullptr)
+			{
+				applyer->apply(inptr, outLptr, bufferLength);
+			}
+			else
+			{
+				memcpy_s(outLptr, bufsize, inptr, bufsize);
+			}
 		}
 	}
 

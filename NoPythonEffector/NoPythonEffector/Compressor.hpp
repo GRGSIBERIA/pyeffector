@@ -6,13 +6,12 @@ namespace effector
 {
 	class Compressor : public Effector
 	{
-		float _threashold = 0.0;
-		float _ratio = 0.0;
+		double _threashold = 0.0;
+		double _ratio = 0.0;
 		bool _comp_enabled = true;
 
 		double _ui_threashold = 0.0;
 		double _ui_ratio = 0.0;
-		bool _ui_enabled = true;
 
 		std::mutex muthreshold;
 		std::mutex muratio;
@@ -25,23 +24,24 @@ namespace effector
 		{
 			std::scoped_lock mutex{ muthreshold, muratio, muenabled };
 
-			const float rv_ratio = 1.0 / _ratio;
+			const double rv_ratio = 1.0 / _ratio;
+			const double norm_threashold = _threashold * (double)INT_MAX;
 
 #pragma omp simd
 			for (long i = 0; i < length; ++i)
 			{
-				const float _abs = abs(input[i]);
-				if (_abs < _threashold)
+				const double _abs = (double)abs(input[i]);
+				if (_abs < norm_threashold)
 				{
 					output[i] = input[i];
 				}
 				else
 				{
-					const float _sign = (input[i] > 0.0) - (input[i] < 0.0);
+					const double _sign = (input[i] > 0.0) - (input[i] < 0.0);
 
-					const float _diff = (_abs - _threashold) * rv_ratio;
+					const double _diff = (_abs - norm_threashold) * rv_ratio;
 
-					input[i] = _sign * (_threashold + _diff);
+					output[i] = (asio::SampleType)(_sign * (norm_threashold + _diff));
 				}
 			}
 		}
@@ -52,10 +52,10 @@ namespace effector
 			const auto title_reg = font(U"Compressor").region(pos);
 
 			const auto enabled_reg = SimpleGUI::CheckBoxRegion(U"Switch", title_reg.bl() + pad);
-			SimpleGUI::CheckBox(_ui_enabled, U"Switch", title_reg.bl() + pad);
+			SimpleGUI::CheckBox(_comp_enabled, U"Switch", title_reg.bl() + pad);
 
 			const auto threshold_reg = drawSlider(U"THREASHOLD", _ui_threashold, enabled_reg.bl() + pad, 0.0, 1.0);
-			const auto ratio_reg = drawSlider(U"RATIO", _ui_ratio, threshold_reg.bl() + pad, 1.0, 8.0);
+			const auto ratio_reg = drawSlider(U"RATIO", _ui_ratio, threshold_reg.bl() + pad, 0.01, 4.0);
 
 			{
 				std::scoped_lock mutex{ muthreshold, muratio };
@@ -92,7 +92,7 @@ namespace effector
 				}
 				else if (key.name == U"enabled")
 				{
-					_ui_enabled = Parse<bool>(key.value);
+					_comp_enabled = Parse<bool>(key.value);
 				}
 			}
 		}
