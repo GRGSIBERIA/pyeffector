@@ -11,6 +11,9 @@ class MainController : public asio::ControllerBase
 	static effector::Compressor comp;
 	static effector::DistortionHard hard;
 	static effector::DistortionSoft soft;
+	static effector::Effector* applyer;
+
+	static std::mutex muapplyer;
 
 	static void BufferSwitch(long index, long)
 	{
@@ -18,6 +21,12 @@ class MainController : public asio::ControllerBase
 		asio::SampleType* outLptr = (asio::SampleType*)bufferManager->Output(0).GetBuffer(index);
 
 		comp.apply(inptr, outLptr, bufferLength);
+
+		{
+			std::scoped_lock mutex{ muapplyer };
+			applyer->apply(inptr, outLptr, bufferLength);
+		}
+		
 		
 		for (size_t i = 0; i < bufferLength; ++i)
 			outLptr[i] = inptr[i];
@@ -73,12 +82,34 @@ public:
 		soft.load(data, path);
 	}
 
-	void draw(const Vec2& pos, const Font& font)
+	void draw(const Vec2& pos, const Font& font, const size_t index)
 	{
 		const Vec2 pad{ 0, 8 };
 		const auto compreg = comp.draw(pos, font);
-		const auto softreg = soft.draw(compreg.bl() + pad, font);
-		const auto hardreg = hard.draw(softreg.bl() + pad, font);
+
+		switch (index)
+		{
+		case 0:
+			break;
+		case 1:		// Distortion
+			const auto hardreg = hard.draw(compreg.bl() + pad, font);
+			break;
+		case 2:		// Overdrive
+			const auto softreg = soft.draw(compreg.bl() + pad, font);
+			break;
+		}
+
+		// 描画している時間が長いので、別のところで変数をロックする
+		std::scoped_lock mutex{ muapplyer };
+		switch (index)
+		{
+		case 1:
+			applyer = &hard;
+			break;
+		case 2:
+			applyer = &soft;
+			break;
+		}
 	}
 
 	void save(INIData& data, const String& path)
@@ -92,3 +123,5 @@ public:
 effector::Compressor MainController::comp;
 effector::DistortionHard MainController::hard;
 effector::DistortionSoft MainController::soft;
+effector::Effector* MainController::applyer = nullptr;
+std::mutex MainController::muapplyer;

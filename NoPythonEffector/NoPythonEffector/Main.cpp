@@ -94,6 +94,8 @@ void Main()
 	bool is_playing = true;
 	bool past_playing = true;	// 前フレームの状態
 
+	Pulldown effect_selector({ U"None", U"Distortion", U"Overdrive" }, U"UIFont");
+
 	Graphics::SetTargetFrameRateHz(30);	// 30FPSで動作させる
 
 	while (System::Update())
@@ -194,6 +196,9 @@ void Main()
 			const auto togglereg = SimpleGUI::CheckBoxRegion(U"Playing", { 4, 4 });
 			SimpleGUI::CheckBox(is_playing, U"Playing", { 4, 4 });
 
+			effect_selector.setPos(togglereg.tr().asPoint() + Point{ 4, 0 });
+			effect_selector.update();
+			
 			if (is_playing && !past_playing)
 			{
 				controller->Start();
@@ -203,8 +208,9 @@ void Main()
 				controller->Stop();
 			}
 
-			controller->draw(togglereg.bl() + pad, font);
+			controller->draw(togglereg.bl() + pad, font, effect_selector.getIndex());
 
+			effect_selector.draw();	// プルダウンで垂れるので最後に描画する
 			past_playing = is_playing;
 		}
 	}
